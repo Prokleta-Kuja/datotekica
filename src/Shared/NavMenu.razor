@@ -1,0 +1,40 @@
+﻿@using System.Reflection
+<nav class="navbar navbar-expand-md navbar-dark bg-secondary">
+    <div class="container-xxl">
+        <a class="navbar-brand me-0" href=@C.Routes.Root>datotekica <sup class="text-muted">@Version</sup></a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse d-md-flex justify-content-between" id="navbarNavDropdown">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <NavLink class="nav-link" href=@C.Routes.MyFiles>
+                        My files
+                    </NavLink>
+                </li>
+            </ul>
+            <div class="dropdown text-end navbar-nav">
+                <a href="#" class="nav-link d-block text-decoration-none dropdown-toggle" id="user-dropdown"
+                    data-bs-toggle="dropdown">
+                    <i class="me-2 bi bi-person-circle"></i> User display name
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="user-dropdown">
+                    <li>
+                        <a class="dropdown-item" href="/sign-ooout">
+                            <i class="me-2 bi bi-box-arrow-right"></i> Sign out
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+@code {
+    private string? Version;
+    protected override void OnInitialized()
+    {
+        Version =
+        Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+    }
+}
