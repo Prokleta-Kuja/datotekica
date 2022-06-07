@@ -8,6 +8,10 @@ public static class C
     {
         public static string Locale => Environment.GetEnvironmentVariable("LOCALE") ?? "en-US";
         public static string TimeZone => Environment.GetEnvironmentVariable("TZ") ?? "Europe/Zagreb";
+        public static string HeaderUser => Environment.GetEnvironmentVariable(nameof(HeaderUser)) ?? "Remote-User";
+        public static string HeaderGroups => Environment.GetEnvironmentVariable(nameof(HeaderGroups)) ?? "Remote-Groups";
+        public static string HeaderName => Environment.GetEnvironmentVariable(nameof(HeaderName)) ?? "Remote-Name";
+        public static string HeaderEmail => Environment.GetEnvironmentVariable(nameof(HeaderEmail)) ?? "Remote-Email";
     }
     public static class Routes
     {

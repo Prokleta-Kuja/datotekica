@@ -1,7 +1,20 @@
 ﻿@page "/"
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>datotekica</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Hello, @username!</h1>
 
 Welcome to your new app.
+
+@code {
+    string username = "Anonymous";
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity != null && user.Identity.IsAuthenticated)
+            username = user.Identity.Name!;
+
+    }
+}

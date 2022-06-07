@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using datotekica;
+using datotekica.Auth;
 using datotekica.Entities;
+using datotekica.Extensions;
 using datotekica.Services;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -40,7 +42,7 @@ public class Program
         builder.Services.AddDataProtection().PersistKeysToDbContext<AppDbContext>();
         builder.Services.AddSingleton<MailService>();
         builder.Services.AddScoped<ToastService>();
-        builder.Services.AddHttpContextAccessor();
+        builder.Services.AddAuthentication(HeaderAuthenticationOptions.DEFAULT_SCHEME).AddHeader();
 
         var app = builder.Build();
 
@@ -57,7 +59,10 @@ public class Program
 
         app.UseRouting();
 
-        app.MapBlazorHub();
+        app.UseAuthentication();
+        app.UseAuthorization();
+
+        app.MapBlazorHub().RequireAuthorization();
         app.MapFallbackToPage("/_Host");
 
         app.Run();
