@@ -1,0 +1,50 @@
+﻿@attribute [Microsoft.AspNetCore.Components.RouteAttribute(C.Routes.MyFilesPageRoute)]
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>📁 - datotekica</PageTitle>
+
+@if (_root == null)
+{
+    <h1>Loading...</h1>
+}
+else if (_current != null)
+{
+    <ul>
+    @foreach (var item in _current.EnumerateDirectories())
+        {
+            <li><a href=@(C.Routes.MyFiles + Path.Combine(PageRoute ?? "/",item.Name))>Dir @item.Name</a></li>
+        }
+        @foreach (var item in _current.EnumerateFiles())
+        {
+            <li><a href=@(C.Routes.MyFiles + Path.Combine(PageRoute ?? "/",item.Name))>File @item.Name</a></li>
+        }
+    </ul>
+}
+
+@code {
+    [Parameter] public string? PageRoute { get; set; }
+    DirectoryInfo? _root;
+    DirectoryInfo? _current;
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity == null || !user.Identity.IsAuthenticated)
+        {
+            // TODO: navigate to forbidden
+            return;
+        }
+
+        var username = user.Identity.Name!;
+        _root = new DirectoryInfo(C.Paths.DataFor(username));
+        _root.Create();
+
+        if (string.IsNullOrWhiteSpace(PageRoute))
+            _current = _root;
+        else
+        {
+            var currentPath = Path.Combine(_root.FullName, PageRoute);
+            _current = new DirectoryInfo(currentPath);
+        }
+    }
+}

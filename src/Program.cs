@@ -69,8 +69,10 @@ public class Program
     }
     static void InitializeDirectories()
     {
-        var appdata = new DirectoryInfo(C.Paths.AppData);
-        appdata.Create();
+        var config = new DirectoryInfo(C.Paths.Config);
+        config.Create();
+        var data = new DirectoryInfo(C.Paths.Data);
+        data.Create();
     }
     static async Task InitializeDb()
     {

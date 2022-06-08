@@ -17,16 +17,19 @@ public static class C
     {
         public const string Root = "/";
         public const string MyFiles = "/📁";
+        public const string MyFilesPageRoute = "/📁/{*pageRoute}";
     }
     public static class Paths
     {
-        public static string AppData => Path.Combine(Environment.CurrentDirectory, "data");
-        public static string AppDataFor(string file) => Path.Combine(AppData, file);
-        public static readonly string AppDbConnectionString = $"Data Source={AppDataFor("app.db")}";
+        public static string Config => Path.Combine(Environment.CurrentDirectory, "config");
+        public static string ConfigFor(string file) => Path.Combine(Config, file);
+        public static string Data => Path.Combine(Environment.CurrentDirectory, "data");
+        public static string DataFor(string file) => Path.Combine(Data, file);
+        public static readonly string AppDbConnectionString = $"Data Source={ConfigFor("app.db")}";
     }
     public static class Config
     {
-        static readonly FileInfo file = new(Paths.AppDataFor("configuration.json"));
+        static readonly FileInfo file = new(Paths.ConfigFor("configuration.json"));
         static readonly JsonSerializerOptions serializerOptions = new()
         {
             WriteIndented = true,
