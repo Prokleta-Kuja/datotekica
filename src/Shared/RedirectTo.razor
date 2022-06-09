@@ -1,0 +1,10 @@
+@code {
+    [Inject] NavigationManager _nav { get; set; } = null!;
+    [Parameter] public string Url { get; set; } = null!;
+    [Parameter] public bool Force { get; set; }
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+            _nav.NavigateTo(Url, Force);
+    }
+}
