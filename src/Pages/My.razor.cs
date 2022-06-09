@@ -61,10 +61,18 @@ public partial class My
         }
 
         _currentPath = _nav.Uri.TrimEnd('/');
-        _parentPath = _currentPath.Substring(0, _currentPath.LastIndexOf('/'));
+        _parentPath = _currentPath[.._currentPath.LastIndexOf('/')];
 
         _dirs = _current.EnumerateDirectories().Select(d => new MyDirectoryModel(d, _currentPath)).ToList();
         _files = _current.EnumerateFiles().Select(f => new MyFileModel(f, _currentPath)).ToList();
+        StateHasChanged();
+    }
+    void AddUploadedFiles(List<FileInfo> uploaded)
+    {
+        if (string.IsNullOrWhiteSpace(_currentPath))
+            return;
+
+        _files.AddRange(uploaded.Select(uf => new MyFileModel(uf, _currentPath)));
         StateHasChanged();
     }
 }

@@ -1,0 +1,16 @@
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+@using System.Buffers;
+
+<div @ref="dropZoneElement" class="drop-zone bg-secondary">
+    <InputFile OnChange="@OnChange" @ref="inputFile" multiple class="file-input" title="" />
+    <p class="mb-0 text-center">Drop/select files to upload</p>
+</div>
+
+@if (_cts != null)
+{
+    var percentage = _transferedBytes / _totalBytes * 100d;
+    <div class="progress">
+    <div class="progress-bar" style="width: @percentage%;">@percentage.ToString("0")%</div>
+</div>
+}

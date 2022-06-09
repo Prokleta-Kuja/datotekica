@@ -50,7 +50,7 @@ else if (_current != null && _current.Exists)
         </div>
         <div class="col-md-3 d-none d-md-block">
             <div class="position-sticky" style="top: 2rem;">
-                Actions
+                <Upload BasePath=@_current.FullName OnSuccess=AddUploadedFiles />
             </div>
         </div>
     </div>
