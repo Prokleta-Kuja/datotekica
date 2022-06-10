@@ -1,16 +1,17 @@
-@inject IJSRuntime JSRuntime
-@implements IAsyncDisposable
-@using System.Buffers;
-
-<div @ref="dropZoneElement" class="drop-zone bg-secondary">
-    <InputFile OnChange="@OnChange" @ref="inputFile" multiple class="file-input" title="" />
-    <p class="mb-0 text-center">Drop/select files to upload</p>
-</div>
-
-@if (_cts != null)
+<InputFile id="upload" class="d-none" OnChange="@OnChange" multiple />
+@if (_cts == null)
+{
+    <label for="upload">
+    <div class="btn btn-success">
+        <i class="bi bi-file-earmark-arrow-up"></i>
+        @Text
+    </div>
+</label>
+}
+else
 {
     var percentage = _transferedBytes / _totalBytes * 100d;
-    <div class="progress">
+    <div class="progress mt-2">
     <div class="progress-bar" style="width: @percentage%;">@percentage.ToString("0")%</div>
 </div>
 }

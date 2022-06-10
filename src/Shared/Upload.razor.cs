@@ -1,43 +1,34 @@
 using System.Buffers;
+using datotekica.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.JSInterop;
 
 namespace datotekica.Shared;
 
 public partial class Upload
 {
+    [Inject] ToastService _toast { get; set; } = null!;
     [Parameter] public string BasePath { get; set; } = null!;
+    [Parameter] public string Text { get; set; } = "Upload files";
+    [Parameter] public int MaxFiles { get; set; } = 128;
+    [Parameter] public long MaxFileSize { get; set; } = 1024 * 1024 * 250; // MB
     [Parameter] public EventCallback<List<FileInfo>> OnSuccess { get; set; }
-    ElementReference dropZoneElement;
-    InputFile? inputFile;
-    IJSObjectReference _module = null!;
-    IJSObjectReference _dropZoneInstance = null!;
     CancellationTokenSource? _cts;
     double _totalBytes;
     double _transferedBytes;
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            _module = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Shared/Upload.razor.js");
-            _dropZoneInstance = await _module.InvokeAsync<IJSObjectReference>("initializeFileDropZone", dropZoneElement, inputFile?.Element);
-        }
-    }
-
-    // Called when a new file is uploaded
+    static char[] s_invalids = Path.GetInvalidFileNameChars();
     async Task OnChange(InputFileChangeEventArgs e)
     {
         _cts = new();
-        var files = e.GetMultipleFiles(100); // TODO: make configurable
+        var files = e.GetMultipleFiles(MaxFiles);
         if (!files.Any())
         {
-            // TODO: notify nothing to download
+            _toast.ShowWarning("Nothing to upload");
             return;
         }
 
         var uploaded = new List<FileInfo>(files.Count);
-        var buffer = ArrayPool<byte>.Shared.Rent(4096);
+        var buffer = ArrayPool<byte>.Shared.Rent(1024 * 16);
         _totalBytes = files.Sum(f => f.Size);
 
         await using var timer = new Timer(_ => InvokeAsync(() => StateHasChanged()));
@@ -47,13 +38,11 @@ public partial class Upload
         {
             foreach (var file in files)
             {
-                var localfile = new FileInfo(Path.Combine(BasePath, file.Name));
+                var localfile = GetLocalFile(file.Name);
                 try
                 {
-                    // TODO: safe file name
-                    localfile.Delete(); // TODO: remove
                     using var localStream = localfile.OpenWrite();
-                    using var browserStream = file.OpenReadStream(10_024_000 * 50, _cts.Token); // TODO: make configurable
+                    using var browserStream = file.OpenReadStream(MaxFileSize, _cts.Token);
 
                     while (await browserStream.ReadAsync(buffer, _cts.Token) is int read && read > 0)
                     {
@@ -61,6 +50,7 @@ public partial class Upload
                         await localStream.WriteAsync(buffer, _cts.Token);
                     }
 
+                    localfile.Refresh();
                     uploaded.Add(localfile);
                 }
                 catch (OperationCanceledException)
@@ -68,10 +58,9 @@ public partial class Upload
                     localfile.Delete();
                     break;
                 }
-                catch (System.Exception)
+                catch (Exception)
                 {
-                    // TODO: show notification
-                    throw;
+                    _toast.ShowError($"Error occured while uploading file {file.Name}");
                 }
             }
 
@@ -88,21 +77,19 @@ public partial class Upload
             StateHasChanged();
         }
     }
-
-    // Unregister the drop zone events
-    public async ValueTask DisposeAsync()
+    FileInfo GetLocalFile(string uploadName)
     {
-        try
-        {
-            if (_dropZoneInstance != null)
-            {
-                await _dropZoneInstance.InvokeVoidAsync("dispose");
-                await _dropZoneInstance.DisposeAsync();
-            }
+        var validName = s_invalids.Aggregate(uploadName, (current, c) => current.Replace(c, '_'));
+        var file = new FileInfo(Path.Combine(BasePath, validName));
 
-            if (_module != null)
-                await _module.DisposeAsync();
+        var ext = Path.GetExtension(validName);
+        var count = 0;
+        while (file.Exists)
+        {
+            var name = Path.GetFileNameWithoutExtension(validName);
+            file = new FileInfo(Path.Combine(BasePath, $"{name}_{++count}{ext}"));
         }
-        catch (JSDisconnectedException) { } // If user closed the tab this will throw interop calls cannot be issued
+
+        return file;
     }
 }
