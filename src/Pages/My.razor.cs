@@ -75,4 +75,9 @@ public partial class My
         _files.AddRange(uploaded.Select(uf => new MyFileModel(uf, _currentPath)));
         StateHasChanged();
     }
+    void AddDirectory(DirectoryInfo dir)
+    {
+        if (!string.IsNullOrWhiteSpace(_currentPath))
+            _dirs.Add(new MyDirectoryModel(dir, _currentPath));
+    }
 }

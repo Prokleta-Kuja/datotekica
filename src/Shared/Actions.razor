@@ -1,0 +1,27 @@
+<InputFile id=upload class=d-none OnChange=UploadFiles multiple />
+@if (_cts != null)
+{
+    var percentage = _transferedBytes / _totalBytes * 100d;
+    <div class="progress mt-2">
+    <div class="progress-bar" style="width: @percentage%;">@percentage.ToString("0")%</div>
+</div>
+}
+else
+{
+    <label for=upload hidden=@(_creatingDir)>
+    <div class="btn btn-outline-success">
+        <i class="bi bi-file-earmark-arrow-up"></i>
+    </div>
+</label>
+
+    <button hidden=@(_creatingDir) class="ms-2 btn btn-outline-success" @onclick=OpenCreateDirectory><i
+        class="bi bi-folder-plus"></i></button>
+
+    <form @onsubmit=CreateDirectory hidden=@(!_creatingDir)>
+    <div class="input-group">
+        <input @ref=_newDirRef type="text" class="form-control" placeholder="New directory name" @bind=_newDirName
+            @onblur=CloseCreateDirectory>
+        <button class="btn btn-outline-success" type="submit"><i class="bi bi-folder-plus"></i></button>
+    </div>
+</form>
+}

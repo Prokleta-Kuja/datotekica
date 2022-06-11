@@ -21,9 +21,12 @@ else if (_current != null && _current.Exists)
     <div class="row my-4">
     <div class="col-md-9">
         <div class="list-group">
+            <div class="list-group-item sticky-top">
+                <Actions BasePath=@_current.FullName OnSuccessFiles=AddUploadedFiles OnSuccessDirectory=AddDirectory />
+            </div>
             @if (_current.FullName != _root.FullName)
                 {
-                    <div class="list-group-item list-group-item-secondary d-flex gap-3 py-0  align-items-center">
+                    <div class="list-group-item list-group-item-secondary d-flex gap-3 py-0 align-items-center">
                         <div class="me-md-3 flex-shrink-0"><i class="bi bi-arrow-left-circle-fill"></i></div>
                         <a class="flex-grow-1 py-3 text-decoration-none text-white" href=@_parentPath> .. </a>
                         <div class="text-right d-none d-sm-block"></div>
@@ -31,7 +34,7 @@ else if (_current != null && _current.Exists)
                 }
                 @foreach (var dir in _dirs)
                 {
-                    <div class="list-group-item list-group-item-action d-flex gap-3 py-0  align-items-center">
+                    <div class="list-group-item list-group-item-action d-flex gap-3 py-0 align-items-center">
                         <div class="me-md-3 flex-shrink-0"><i class="bi bi-folder-fill"></i></div>
                         <a class="flex-grow-1 py-3 text-truncate text-decoration-none text-white" title=@dir.Name href=@dir.Url>@dir.Name</a>
                         <div class="text-right d-none d-sm-block">@dir.Modified</div>
@@ -39,7 +42,7 @@ else if (_current != null && _current.Exists)
                 }
                 @foreach (var file in _files)
                 {
-                    <div class="list-group-item list-group-item-action d-flex gap-3 py-0  align-items-center">
+                    <div class="list-group-item list-group-item-action d-flex gap-3 py-0 align-items-center">
                         <div class="me-md-3 flex-shrink-0"><i class="bi bi-file-earmark"></i></div>
                         <a class="flex-grow-1 py-3 text-truncate text-decoration-none text-white" title=@file.Name href=@file.Url
                     target="_blank">@file.Name</a>
@@ -49,9 +52,6 @@ else if (_current != null && _current.Exists)
             </div>
         </div>
         <div class="col-md-3 d-none d-md-block">
-            <div class="position-sticky" style="top: 2rem;">
-                <Upload BasePath=@_current.FullName OnSuccess=AddUploadedFiles />
-            </div>
         </div>
     </div>
 }

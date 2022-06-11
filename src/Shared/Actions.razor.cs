@@ -5,19 +5,22 @@ using Microsoft.AspNetCore.Components.Forms;
 
 namespace datotekica.Shared;
 
-public partial class Upload
+public partial class Actions
 {
     [Inject] ToastService _toast { get; set; } = null!;
     [Parameter] public string BasePath { get; set; } = null!;
-    [Parameter] public string Text { get; set; } = "Upload files";
     [Parameter] public int MaxFiles { get; set; } = 128;
     [Parameter] public long MaxFileSize { get; set; } = 1024 * 1024 * 250; // MB
-    [Parameter] public EventCallback<List<FileInfo>> OnSuccess { get; set; }
+    [Parameter] public EventCallback<List<FileInfo>> OnSuccessFiles { get; set; }
+    [Parameter] public EventCallback<DirectoryInfo> OnSuccessDirectory { get; set; }
     CancellationTokenSource? _cts;
     double _totalBytes;
     double _transferedBytes;
+    bool _creatingDir;
+    string? _newDirName;
+    ElementReference _newDirRef;
     static char[] s_invalids = Path.GetInvalidFileNameChars();
-    async Task OnChange(InputFileChangeEventArgs e)
+    async Task UploadFiles(InputFileChangeEventArgs e)
     {
         _cts = new();
         var files = e.GetMultipleFiles(MaxFiles);
@@ -64,8 +67,8 @@ public partial class Upload
                 }
             }
 
-            if (OnSuccess.HasDelegate)
-                await OnSuccess.InvokeAsync(uploaded);
+            if (OnSuccessFiles.HasDelegate)
+                await OnSuccessFiles.InvokeAsync(uploaded);
         }
         finally
         {
@@ -76,6 +79,31 @@ public partial class Upload
             _totalBytes = _transferedBytes = 0;
             StateHasChanged();
         }
+    }
+    async void OpenCreateDirectory()
+    {
+        _creatingDir = true;
+        await Task.Delay(1);
+        await _newDirRef.FocusAsync();
+    }
+    async void CloseCreateDirectory() { await Task.Delay(50); _creatingDir = false; }
+    async Task CreateDirectory()
+    {
+        if (string.IsNullOrWhiteSpace(_newDirName))
+            return;
+
+        var validName = s_invalids.Aggregate(_newDirName, (current, c) => current.Replace(c, '_'));
+        var dir = new DirectoryInfo(Path.Combine(BasePath, validName));
+
+        if (!dir.Exists)
+        {
+            dir.Create();
+            if (OnSuccessDirectory.HasDelegate)
+                await OnSuccessDirectory.InvokeAsync(dir);
+        }
+
+        _creatingDir = false;
+        _newDirName = null;
     }
     FileInfo GetLocalFile(string uploadName)
     {
