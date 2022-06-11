@@ -9,10 +9,12 @@ public class MyFileModel
         Name = HttpUtility.HtmlEncode(file.Name);
         Modified = file.LastWriteTimeUtc;
         Size = file.Length;
+        Path = file.FullName;
         Url = $"{prevPath}/{HttpUtility.UrlPathEncode(file.Name)}";
     }
 
     public string Url { get; set; }
+    public string Path { get; set; }
     public string Name { get; set; }
     public DateTime Modified { get; set; }
     public long Size { get; set; }

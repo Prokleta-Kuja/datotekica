@@ -6,22 +6,33 @@
     <div class="progress-bar" style="width: @percentage%;">@percentage.ToString("0")%</div>
 </div>
 }
+else if (Selected?.Any() ?? false)
+{
+    <div class="d-flex justify-content-between">
+    <button class="btn btn-sm btn-primary" title="Download"><i class="bi bi-file-earmark-zip"></i></button>
+    <button class="btn btn-sm btn-outline-info" title="Deselect" @onclick=DeselectAll>@Selected.Count</button>
+    <button class="btn btn-sm btn-danger" @ondblclick=DeleteSelected title="Double click to delete"><i
+            class="bi bi-trash3"></i></button>
+</div>
+}
 else
 {
     <label for=upload hidden=@(_creatingDir)>
-    <div class="btn btn-outline-success">
+    <div class="btn btn-sm btn-outline-success" title="Upload file(s)">
         <i class="bi bi-file-earmark-arrow-up"></i>
     </div>
 </label>
 
-    <button hidden=@(_creatingDir) class="ms-2 btn btn-outline-success" @onclick=OpenCreateDirectory><i
-        class="bi bi-folder-plus"></i></button>
+    <button hidden=@(_creatingDir) class="ms-2 btn btn-sm btn-outline-success" @onclick=OpenCreateDirectory
+    title="Create directory">
+        <i class="bi bi-folder-plus"></i>
+    </button>
 
     <form @onsubmit=CreateDirectory hidden=@(!_creatingDir)>
     <div class="input-group">
-        <input @ref=_newDirRef type="text" class="form-control" placeholder="New directory name" @bind=_newDirName
-            @onblur=CloseCreateDirectory>
-        <button class="btn btn-outline-success" type="submit"><i class="bi bi-folder-plus"></i></button>
+        <input @ref=_newDirRef type="text" class="form-control form-control-sm" placeholder="New directory name"
+            @bind=_newDirName @onblur=CloseCreateDirectory>
+        <button class="btn btn-sm btn-outline-success" type="submit"><i class="bi bi-folder-plus"></i></button>
     </div>
 </form>
 }

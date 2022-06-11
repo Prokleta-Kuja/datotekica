@@ -1,4 +1,5 @@
 using datotekica.Models;
+using datotekica.Shared;
 using Microsoft.AspNetCore.Components;
 
 namespace datotekica.Pages;
@@ -16,6 +17,7 @@ public partial class My
     string? _parentPath;
     List<MyDirectoryModel> _dirs = new();
     List<MyFileModel> _files = new();
+    Dictionary<string, bool> _selected = new();
     protected override async Task OnInitializedAsync()
     {
         _prevPageRoute = PageRoute;
@@ -80,4 +82,12 @@ public partial class My
         if (!string.IsNullOrWhiteSpace(_currentPath))
             _dirs.Add(new MyDirectoryModel(dir, _currentPath));
     }
+    void ToggleSelected(string path, bool isDir)
+    {
+        if (_selected.ContainsKey(path))
+            _selected.Remove(path);
+        else
+            _selected.Add(path, isDir);
+    }
+    string IsSelected(string path, bool isDir) => _selected.ContainsKey(path) ? "bi bi-check-all text-warning" : isDir ? "bi bi-folder-fill" : "bi bi-file-earmark";
 }

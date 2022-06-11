@@ -11,8 +11,11 @@ public partial class Actions
     [Parameter] public string BasePath { get; set; } = null!;
     [Parameter] public int MaxFiles { get; set; } = 128;
     [Parameter] public long MaxFileSize { get; set; } = 1024 * 1024 * 250; // MB
+    [Parameter] public Dictionary<string, bool>? Selected { get; set; }
     [Parameter] public EventCallback<List<FileInfo>> OnSuccessFiles { get; set; }
     [Parameter] public EventCallback<DirectoryInfo> OnSuccessDirectory { get; set; }
+    [Parameter] public EventCallback OnDeleted { get; set; }
+    [Parameter] public EventCallback OnDeselect { get; set; }
     CancellationTokenSource? _cts;
     double _totalBytes;
     double _transferedBytes;
@@ -102,8 +105,44 @@ public partial class Actions
                 await OnSuccessDirectory.InvokeAsync(dir);
         }
 
+        _toast.ShowSuccess($"Directory {_newDirName} created.");
         _creatingDir = false;
         _newDirName = null;
+    }
+    async Task DeleteSelected()
+    {
+        if (Selected == null)
+            return;
+
+        int dirs = 0, files = 0;
+        foreach (var item in Selected)
+        {
+            if (item.Value) // Is dir 
+            {
+                var dir = new DirectoryInfo(item.Key);
+                dir.Delete(true);
+                dirs++;
+            }
+            else
+            {
+                var file = new FileInfo(item.Key);
+                file.Delete();
+                files++;
+            }
+            Selected.Remove(item.Key);
+        }
+
+        _toast.ShowSuccess($"Deleted {dirs} directories and {files} files.");
+
+        if (OnDeleted.HasDelegate)
+            await OnDeleted.InvokeAsync();
+    }
+    async Task DeselectAll()
+    {
+        Selected?.Clear();
+
+        if (OnDeselect.HasDelegate)
+            await OnDeselect.InvokeAsync();
     }
     FileInfo GetLocalFile(string uploadName)
     {

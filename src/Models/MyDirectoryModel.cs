@@ -8,10 +8,12 @@ public class MyDirectoryModel
     {
         Name = HttpUtility.HtmlEncode(dir.Name);
         Modified = dir.LastWriteTimeUtc;
+        Path = dir.FullName;
         Url = $"{prevPath}/{HttpUtility.UrlPathEncode(dir.Name)}";
     }
 
     public string Url { get; set; }
+    public string Path { get; set; }
     public string Name { get; set; }
     public DateTime Modified { get; set; }
 }
