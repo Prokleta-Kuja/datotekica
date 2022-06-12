@@ -1,6 +1,7 @@
 .toast-container {
     z-index: 2048;
 }
+
 #blazor-error-ui {
     background: lightyellow;
     bottom: 0;
@@ -26,6 +27,10 @@
     color: white;
 }
 
-    .blazor-error-boundary::after {
-        content: "An error has occurred."
-    }
+.blazor-error-boundary::after {
+    content: "An error has occurred."
+}
+
+.pointer {
+    cursor: pointer;
+}

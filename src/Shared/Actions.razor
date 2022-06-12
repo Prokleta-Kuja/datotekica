@@ -9,7 +9,8 @@
 else if (Selected?.Any() ?? false)
 {
     <div class="d-flex justify-content-between">
-    <button class="btn btn-sm btn-primary" title="Download"><i class="bi bi-file-earmark-zip"></i></button>
+    <button class="btn btn-sm btn-primary" title="Download" @onclick=Download><i
+            class="bi bi-file-earmark-zip"></i></button>
     <button class="btn btn-sm btn-outline-info" title="Deselect" @onclick=DeselectAll>@Selected.Count</button>
     <button class="btn btn-sm btn-danger" @ondblclick=DeleteSelected title="Double click to delete"><i
             class="bi bi-trash3"></i></button>

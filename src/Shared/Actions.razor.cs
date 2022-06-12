@@ -1,13 +1,17 @@
 using System.Buffers;
+using datotekica.Extensions;
 using datotekica.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.JSInterop;
 
 namespace datotekica.Shared;
 
 public partial class Actions
 {
     [Inject] ToastService _toast { get; set; } = null!;
+    [Inject] CacheService _cache { get; set; } = null!;
+    [Inject] IJSRuntime _js { get; set; } = null!;
     [Parameter] public string BasePath { get; set; } = null!;
     [Parameter] public int MaxFiles { get; set; } = 128;
     [Parameter] public long MaxFileSize { get; set; } = 1024 * 1024 * 250; // MB
@@ -143,6 +147,15 @@ public partial class Actions
 
         if (OnDeselect.HasDelegate)
             await OnDeselect.InvokeAsync();
+    }
+    async Task Download()
+    {
+        if (Selected == null)
+            return;
+
+        var id = _cache.RegisterDownload(Selected);
+        var url = C.Routes.DownloadFor(id);
+        await _js.OpenNewTab(url);
     }
     FileInfo GetLocalFile(string uploadName)
     {

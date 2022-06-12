@@ -1,4 +1,4 @@
-﻿@attribute [Microsoft.AspNetCore.Components.RouteAttribute(C.Routes.MyFilesPageRoute)]
+﻿@attribute [Microsoft.AspNetCore.Components.RouteAttribute(C.Routes.MyFilesPattern)]
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>📁 - datotekica</PageTitle>
@@ -22,7 +22,8 @@ else if (_current != null && _current.Exists)
     <div class="col-md-9">
         <div class="list-group">
             <div class="list-group-item sticky-top">
-                <Actions BasePath=@_current.FullName Selected=_selected OnSuccessFiles=AddUploadedFiles OnSuccessDirectory=AddDirectory OnDeleted=EnumerateCurrentDirectory OnDeselect=StateHasChanged />
+                <Actions BasePath=@_current.FullName Selected=_selected OnSuccessFiles=AddUploadedFiles
+                    OnSuccessDirectory=AddDirectory OnDeleted=EnumerateCurrentDirectory OnDeselect=StateHasChanged />
             </div>
             @if (_current.FullName != _root.FullName)
                 {
@@ -35,17 +36,20 @@ else if (_current != null && _current.Exists)
                 @foreach (var dir in _dirs)
                 {
                     <div class="list-group-item list-group-item-action d-flex align-items-center p-0">
-                        <div class="flex-shrink-0 p-2" @onclick=@(()=>ToggleSelected(dir.Path, true))><i class=@IsSelected(dir.Path, true)></i></div>
-                        <a class="flex-grow-1 py-2 text-truncate text-decoration-none text-white" title=@dir.Name href=@dir.Url>@dir.Name</a>
+                        <div class="flex-shrink-0 p-2 pointer" title="Toggle selected" @onclick=@(()=>ToggleSelected(dir.Path, true))><i
+                        class=@IsSelected(dir.Path, true)></i></div>
+                        <a class="flex-grow-1 py-2 text-truncate text-decoration-none text-white" title=@dir.Name
+                    href=@dir.Url>@dir.Name</a>
                         <div class="text-right d-none d-sm-block">@dir.Modified</div>
                     </div>
                 }
                 @foreach (var file in _files)
                 {
                     <div class="list-group-item list-group-item-action d-flex align-items-center p-0">
-                        <div class="flex-shrink-0 p-2" @onclick=@(()=>ToggleSelected(file.Path, false))><i class=@IsSelected(file.Path, false)></i></div>
-                        <a class="flex-grow-1 py-2 text-truncate text-decoration-none text-white" title=@file.Name href=@file.Url
-                    target="_blank">@file.Name</a>
+                        <div class="flex-shrink-0 p-2 pointer" title="Toggle selected" @onclick=@(()=>ToggleSelected(file.Path, false))><i
+                        class=@IsSelected(file.Path, false)></i></div>
+                        <div class="flex-grow-1 py-2 text-truncate text-decoration-none text-white pointer" title=@file.Name
+                    @onclick=@(()=>DownloadFile(file.Path))>@file.Name</div>
                         <div class="text-right d-none d-sm-block">@file.Modified</div>
                     </div>
                 }

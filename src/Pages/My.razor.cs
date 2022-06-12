@@ -1,12 +1,17 @@
+using datotekica.Extensions;
 using datotekica.Models;
+using datotekica.Services;
 using datotekica.Shared;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 
 namespace datotekica.Pages;
 
 public partial class My
 {
     [Inject] NavigationManager _nav { get; set; } = null!;
+    [Inject] CacheService _cache { get; set; } = null!;
+    [Inject] IJSRuntime _js { get; set; } = null!;
     [Parameter] public string? PageRoute { get; set; }
     bool _unauthorized;
     bool _notFound;
@@ -81,6 +86,12 @@ public partial class My
     {
         if (!string.IsNullOrWhiteSpace(_currentPath))
             _dirs.Add(new MyDirectoryModel(dir, _currentPath));
+    }
+    async Task DownloadFile(string path)
+    {
+        var id = _cache.RegisterDownload(path, false);
+        var url = C.Routes.DownloadFor(id);
+        await _js.OpenNewTab(url);
     }
     void ToggleSelected(string path, bool isDir)
     {

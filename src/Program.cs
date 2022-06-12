@@ -40,6 +40,7 @@ public class Program
         builder.Services.AddRazorPages();
         builder.Services.AddServerSideBlazor();
         builder.Services.AddDataProtection().PersistKeysToDbContext<AppDbContext>();
+        builder.Services.AddSingleton<CacheService>();
         builder.Services.AddSingleton<MailService>();
         builder.Services.AddScoped<ToastService>();
         builder.Services.AddAuthentication(HeaderAuthenticationOptions.DEFAULT_SCHEME).AddHeader();
@@ -62,6 +63,7 @@ public class Program
         app.UseAuthentication();
         app.UseAuthorization();
 
+        app.MapDownload();
         app.MapBlazorHub().RequireAuthorization();
         app.MapFallbackToPage("/_Host");
 
