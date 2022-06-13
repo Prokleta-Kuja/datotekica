@@ -1,9 +1,12 @@
+using System.Globalization;
 using System.Text.Json;
 
 namespace datotekica;
 
 public static class C
 {
+    public static readonly TimeZoneInfo DefaultTZ = TimeZoneInfo.FindSystemTimeZoneById("Europe/Zagreb");
+    public static readonly CultureInfo DefaultLocale = CultureInfo.GetCultureInfo("en-US");
     public static class Env
     {
         public static string Locale => Environment.GetEnvironmentVariable("LOCALE") ?? "en-US";
@@ -21,6 +24,8 @@ public static class C
         public static string DownloadFor(Guid id) => $"{Download}/{id}";
         public const string MyFiles = "/📁";
         public const string MyFilesPattern = "/📁/{*pageRoute}";
+        public const string InternalShare = "/📰";
+        public const string InternalSharePattern = "/📰/{*pageRoute}";
     }
     public static class Paths
     {

@@ -10,23 +10,30 @@ public partial class AppDbContext : DbContext, IDataProtectionKeyContext
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
     public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
-    // public DbSet<User> Users { get; set; } = null!;
-    // public DbSet<UserRole> UserRoles { get; set; } = null!;
+    public DbSet<User> Users { get; set; } = null!;
+    public DbSet<InternalShare> InternalShares { get; set; } = null!;
+    public DbSet<InternalShareUser> InternalSharePermissions { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
 
-        // builder.Entity<User>(e =>
-        // {
-        //     e.HasKey(p => p.UserId);
-        //     e.HasMany(p => p.UserRoles).WithOne(p => p.User!).OnDelete(DeleteBehavior.Cascade);
-        // });
+        builder.Entity<User>(e =>
+        {
+            e.HasKey(p => p.UserId);
+            e.HasMany(p => p.InternalShareUsers).WithOne(p => p.User!).OnDelete(DeleteBehavior.Cascade);
+        });
 
-        // builder.Entity<UserRole>(e =>
-        // {
-        //     e.HasKey(p => new { p.UserId, p.RoleId });
-        // });
+        builder.Entity<InternalShare>(e =>
+        {
+            e.HasKey(p => p.InternalShareId);
+            e.HasMany(p => p.InternalShareUsers).WithOne(p => p.InternalShare!).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<InternalShareUser>(e =>
+        {
+            e.HasKey(p => new { p.UserId, p.InternalShareId });
+        });
 
         foreach (var entityType in builder.Model.GetEntityTypes())
         {

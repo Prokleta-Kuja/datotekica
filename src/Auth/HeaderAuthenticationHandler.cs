@@ -1,7 +1,9 @@
 using System.Diagnostics;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
+using datotekica.Entities;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace datotekica.Auth;
@@ -12,33 +14,48 @@ public class HeaderAuthenticationHandler : SignInAuthenticationHandler<HeaderAut
         : base(options, logger, encoder, clock)
     { }
 
-    protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+    protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        var claims = new List<Claim>();
+        string username;
         if (Debugger.IsAttached)
-            claims.Add(new(Claims.Subject, "developer"));
+            username = "developer";
+        else if (Context.Request.Headers.TryGetValue(Options.RemoteUser, out var remoteuser))
+            username = remoteuser;
         else
+            return AuthenticateResult.NoResult();
+
+        var usernameNormalized = username.ToLower();
+        var db = Context.RequestServices.GetRequiredService<AppDbContext>();
+        var dbUser = await db.Users.SingleOrDefaultAsync(u => u.UsernameNormalized == usernameNormalized);
+
+        if (dbUser == null)
         {
-            if (!Context.Request.Headers.TryGetValue(Options.RemoteUser, out var username))
-                return Task.FromResult(AuthenticateResult.NoResult());
-
-            claims.Add(new(Claims.Subject, username));
-
-            if (Context.Request.Headers.TryGetValue(Options.RemoteName, out var displayName))
-                claims.Add(new(Claims.DisplayName, displayName));
-
-            if (Context.Request.Headers.TryGetValue(Options.RemoteEmail, out var email))
-                claims.Add(new(Claims.Email, email));
-
-            // TODO: roles / groups
-            // if (Context.Request.Headers.TryGetValue(Options.RemoteName, out var g))
-            //      claims.Add(new(Claims., displayName));
+            dbUser = new(usernameNormalized);
+            db.Users.Add(dbUser);
+            await db.SaveChangesAsync();
         }
+
+        if (dbUser.Disabled.HasValue)
+            return AuthenticateResult.Fail("User is disallowed");
+
+        var claims = new List<Claim>();
+        claims.Add(new(Claims.Subject, username));
+
+        if (Context.Request.Headers.TryGetValue(Options.RemoteName, out var displayName))
+            claims.Add(new(Claims.DisplayName, displayName));
+
+        if (Context.Request.Headers.TryGetValue(Options.RemoteEmail, out var email))
+            claims.Add(new(Claims.Email, email));
+
+        // TODO: roles / groups
+        // if (Context.Request.Headers.TryGetValue(Options.RemoteName, out var g))
+        //      claims.Add(new(Claims., displayName));
+
 
         var identity = new ClaimsIdentity(claims, Scheme.Name, Claims.Subject, null);
         var user = new ClaimsPrincipal(identity);
 
-        return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(user, Scheme.Name)));
+        return AuthenticateResult.Success(new AuthenticationTicket(user, Scheme.Name));
     }
 
     protected override Task HandleSignInAsync(ClaimsPrincipal user, AuthenticationProperties? properties)
