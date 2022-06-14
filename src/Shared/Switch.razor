@@ -1,0 +1,53 @@
+<div class="form-check form-switch @(NoMargin ? "" : "mb-3")">
+    <input @ref=Input class="form-check-input @(_isError ? "is-invalid":"")" type="checkbox" id="@For"
+        required=@Required @bind=@InputValue>
+    <label class="form-check-label" for="@For">@Label @(Required ? "*":"")</label>
+    @if (!string.IsNullOrWhiteSpace(HelpTitle) || OnHelpClicked.HasDelegate)
+    {
+        <i class="ms-1 bi bi-info-square" title=@HelpTitle @onclick=HelpClicked role="button"></i>
+    }
+    @if (_isError)
+    {
+        <div class="invalid-feedback">
+            @Errors![For]
+        </div>
+    }
+</div>
+
+@code {
+    private bool _isError => Errors != null && Errors.ContainsKey(For);
+    private ElementReference Input;
+    private bool InputValue { get => Value; set { _ = UpdateAsync(value); } }
+    [Parameter] public string For { get; set; } = null!;
+    [Parameter] public string Label { get; set; } = null!;
+    [Parameter] public bool Value { get; set; }
+    [Parameter] public EventCallback<bool> ValueChanged { get; set; }
+    [Parameter] public bool Required { get; set; }
+    [Parameter] public Dictionary<string, string>? Errors { get; set; }
+    [Parameter] public bool AutoFocus { get; set; }
+    [Parameter] public bool NoMargin { get; set; }
+    [Parameter] public string? HelpTitle { get; set; }
+    [Parameter] public EventCallback OnHelpClicked { get; set; }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && AutoFocus)
+            await Input.FocusAsync();
+    }
+
+    private async Task UpdateAsync(bool value)
+    {
+        if (_isError)
+            Errors!.Remove(For);
+
+        if (!ValueChanged.HasDelegate)
+            return;
+
+        await ValueChanged.InvokeAsync(value);
+    }
+
+    private async Task HelpClicked()
+    {
+        if (OnHelpClicked.HasDelegate)
+            await OnHelpClicked.InvokeAsync();
+    }
+}

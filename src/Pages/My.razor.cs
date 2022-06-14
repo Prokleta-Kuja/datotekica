@@ -1,14 +1,15 @@
 using datotekica.Extensions;
 using datotekica.Models;
 using datotekica.Services;
-using datotekica.Shared;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 
 namespace datotekica.Pages;
 
 public partial class My
 {
+    [Inject] AuthenticationStateProvider _auth { get; set; } = null!;
     [Inject] NavigationManager _nav { get; set; } = null!;
     [Inject] CacheService _cache { get; set; } = null!;
     [Inject] IJSRuntime _js { get; set; } = null!;
@@ -26,7 +27,7 @@ public partial class My
     protected override async Task OnInitializedAsync()
     {
         _prevPageRoute = PageRoute;
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var authState = await _auth.GetAuthenticationStateAsync();
         var user = authState.User;
         if (user.Identity == null || !user.Identity.IsAuthenticated)
         {

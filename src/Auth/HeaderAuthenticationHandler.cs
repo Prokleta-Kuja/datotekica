@@ -67,4 +67,14 @@ public class HeaderAuthenticationHandler : SignInAuthenticationHandler<HeaderAut
     {
         throw new NotImplementedException();
     }
+    protected override Task HandleChallengeAsync(AuthenticationProperties properties)
+    {
+        Context.Response.Redirect(C.Routes.Forbidden);
+        return Task.CompletedTask;
+    }
+    protected override Task HandleForbiddenAsync(AuthenticationProperties properties)
+    {
+        Context.Response.Redirect(C.Routes.Forbidden);
+        return Task.CompletedTask;
+    }
 }

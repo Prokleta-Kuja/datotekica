@@ -7,7 +7,6 @@ public class InternalShareUser
         UserId = userId;
         CanWrite = canWrite;
     }
-    public int InternalSharePermissionId { get; set; }
     public int InternalShareId { get; set; }
     public int UserId { get; set; }
     public bool CanWrite { get; set; }

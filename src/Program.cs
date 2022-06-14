@@ -64,6 +64,7 @@ public class Program
         app.UseAuthorization();
 
         app.MapDownload();
+        app.MapRazorPages().RequireAuthorization();
         app.MapBlazorHub().RequireAuthorization();
         app.MapFallbackToPage("/_Host");
 

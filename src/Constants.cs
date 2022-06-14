@@ -19,6 +19,7 @@ public static class C
     public static class Routes
     {
         public const string Root = "/";
+        public const string Forbidden = "/forbidden";
         public const string Download = "/📦";
         public const string DownloadPattern = "/📦/{id:guid}";
         public static string DownloadFor(Guid id) => $"{Download}/{id}";
@@ -26,6 +27,8 @@ public static class C
         public const string MyFilesPattern = "/📁/{*pageRoute}";
         public const string InternalShare = "/📰";
         public const string InternalSharePattern = "/📰/{*pageRoute}";
+        public const string InternalShareConfiguration = "/internal-share-configuration";
+        public const string UsersConfiguration = "/user-configuration";
     }
     public static class Paths
     {

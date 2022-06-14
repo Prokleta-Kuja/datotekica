@@ -1,12 +1,10 @@
 ﻿@attribute [Microsoft.AspNetCore.Components.RouteAttribute(C.Routes.MyFilesPattern)]
-@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>📁 - datotekica</PageTitle>
 
 @if (_unauthorized)
 {
-    @* TODO: change to unauthorized *@
-    <RedirectTo Url=@C.Routes.MyFiles />
+    <RedirectTo Url=@C.Routes.Forbidden />
 }
 else if (_notFound)
 {
