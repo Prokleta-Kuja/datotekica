@@ -7,7 +7,7 @@ namespace datotekica.Pages.Configuration;
 
 public partial class Users
 {
-    [Inject] private IDbContextFactory<AppDbContext> DbFactory { get; set; } = null!;
+    [Inject] IDbContextFactory<AppDbContext> _factory { get; set; } = null!;
     List<User> _list = new();
     UserCreateModel? _create;
     UserEditModel? _edit;
@@ -19,7 +19,7 @@ public partial class Users
     }
     async Task LoadInternalSharesAsync()
     {
-        var db = await DbFactory.CreateDbContextAsync();
+        var db = await _factory.CreateDbContextAsync();
         _list = await db.Users.ToListAsync();
     }
     void AddClicked()
@@ -55,7 +55,7 @@ public partial class Users
             return;
 
         var item = new User(_create.Username!.ToLower());
-        using var db = await DbFactory.CreateDbContextAsync();
+        using var db = await _factory.CreateDbContextAsync();
         db.Users.Add(item);
         await db.SaveChangesAsync();
 
@@ -75,7 +75,7 @@ public partial class Users
         if (item == null)
             return;
 
-        using var db = await DbFactory.CreateDbContextAsync();
+        using var db = await _factory.CreateDbContextAsync();
         db.Attach(item);
         item.UsernameNormalized = _edit.Username!.ToLower();
         item.TimezoneId = _edit.TimezoneId!;

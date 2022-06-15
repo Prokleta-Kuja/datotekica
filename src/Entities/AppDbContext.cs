@@ -12,7 +12,7 @@ public partial class AppDbContext : DbContext, IDataProtectionKeyContext
     public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
     public DbSet<User> Users { get; set; } = null!;
     public DbSet<InternalShare> InternalShares { get; set; } = null!;
-    public DbSet<InternalShareUser> InternalSharePermissions { get; set; } = null!;
+    public DbSet<InternalShareUser> InternalShareUsers { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

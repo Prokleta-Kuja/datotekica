@@ -7,7 +7,7 @@ namespace datotekica.Pages.Configuration;
 
 public partial class InternalShares
 {
-    [Inject] private IDbContextFactory<AppDbContext> DbFactory { get; set; } = null!;
+    [Inject] IDbContextFactory<AppDbContext> _factory { get; set; } = null!;
     List<InternalShare> _list = new();
     Dictionary<int, string> _allUsers = new();
     Dictionary<int, (string username, bool canWrite)> _selectedUsers = new();
@@ -22,18 +22,18 @@ public partial class InternalShares
     }
     async Task LoadInternalSharesAsync()
     {
-        var db = await DbFactory.CreateDbContextAsync();
+        var db = await _factory.CreateDbContextAsync();
         _list = await db.InternalShares.Include(s => s.InternalShareUsers).ToListAsync();
         _allUsers = await db.Users.ToDictionaryAsync(u => u.UserId, u => u.UsernameNormalized);
     }
     void AddClicked()
     {
-        _edit = null;
+        Clear();
         _create = new InternalShareCreateModel();
     }
     void EditClicked(InternalShare item)
     {
-        _create = null;
+        Clear();
         _edit = new InternalShareEditModel(item);
 
         foreach (var user in item.InternalShareUsers)
@@ -79,7 +79,7 @@ public partial class InternalShares
             return;
 
         var item = new InternalShare(_create.Mount!, _create.Name!);
-        using var db = await DbFactory.CreateDbContextAsync();
+        using var db = await _factory.CreateDbContextAsync();
         db.InternalShares.Add(item);
         await db.SaveChangesAsync();
 
@@ -99,7 +99,7 @@ public partial class InternalShares
         if (item == null)
             return;
 
-        using var db = await DbFactory.CreateDbContextAsync();
+        using var db = await _factory.CreateDbContextAsync();
         db.Attach(item);
         item.Name = _edit.Name!;
         item.Mount = _edit.Mount!;

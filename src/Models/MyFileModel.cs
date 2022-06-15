@@ -7,7 +7,7 @@ public class MyFileModel
 {
     public MyFileModel(FileInfo file, string prevPath)
     {
-        Name = HttpUtility.HtmlEncode(file.Name);
+        Name = file.Name;
         Modified = file.LastWriteTimeUtc;
         Size = file.Length;
         Path = file.FullName;

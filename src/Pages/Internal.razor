@@ -1,6 +1,6 @@
-﻿@attribute [Microsoft.AspNetCore.Components.RouteAttribute(C.Routes.MyFilesPattern)]
+﻿@attribute [Microsoft.AspNetCore.Components.RouteAttribute(C.Routes.InternalSharePattern)]
 
-<PageTitle>📁 - datotekica</PageTitle>
+<PageTitle>📰 - datotekica</PageTitle>
 
 @if (_unauthorized)
 {
@@ -8,11 +8,29 @@
 }
 else if (_notFound)
 {
-    <RedirectTo Url=@C.Routes.MyFiles />
+    <RedirectTo Url=@C.Routes.InternalShare />
+}
+else if (!_shares.Any())
+{
+    <h1>Nothing is shared with you.</h1>
 }
 else if (_root == null)
 {
-    <h1>Loading...</h1>
+    <div class="row my-4">
+        <div class="col-md-9">
+            <div class="list-group">
+                @foreach (var share in _shares)
+                {
+                    <div @key=share.Key class="list-group-item list-group-item-action d-flex align-items-center p-0">
+                        <div class="flex-shrink-0 p-2"><i class="bi bi-folder-symlink-fill"></i></div>
+                        <a class="flex-grow-1 py-2 text-truncate text-decoration-none text-white" title=@share.Value.Name
+                    href=@share.Value.Url>@share.Value.Name</a>
+                        <div class="text-right d-none d-sm-block" title=@share.Value.Modified>@share.Value.ModifiedAgo</div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
 }
 else if (_current != null && _current.Exists)
 {
@@ -20,17 +38,14 @@ else if (_current != null && _current.Exists)
     <div class="col-md-9">
         <div class="list-group">
             <div class="list-group-item sticky-top">
-                <Actions BasePath=@_current.FullName Selected=_selected OnSuccessFiles=AddUploadedFiles CanWrite
+                <Actions BasePath=@_current.FullName Selected=_selected OnSuccessFiles=AddUploadedFiles CanWrite=HasWrite()
                     OnSuccessDirectory=AddDirectory OnDeleted=EnumerateCurrentDirectory OnDeselect=StateHasChanged />
             </div>
-            @if (_current.FullName != _root.FullName)
-                {
-                    <div class="list-group-item list-group-item-secondary d-flex align-items-center p-0">
-                        <div class="flex-shrink-0 p-2"><i class="bi bi-arrow-left-circle-fill"></i></div>
-                        <a class="flex-grow-1 py-2 text-decoration-none text-white" href=@_parentPath> .. </a>
-                        <div class="text-right d-none d-sm-block"></div>
-                    </div>
-                }
+                <div class="list-group-item list-group-item-secondary d-flex align-items-center p-0">
+                    <div class="flex-shrink-0 p-2"><i class="bi bi-arrow-left-circle-fill"></i></div>
+                    <a class="flex-grow-1 py-2 text-decoration-none text-white" href=@_parentPath> .. </a>
+                    <div class="text-right d-none d-sm-block"></div>
+                </div>
                 @foreach (var dir in _dirs)
                 {
                     <div class="list-group-item list-group-item-action d-flex align-items-center p-0">

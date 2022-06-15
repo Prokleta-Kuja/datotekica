@@ -10,6 +10,8 @@ public class InternalShareCreateModel
 
         if (string.IsNullOrWhiteSpace(Mount))
             errors.Add(nameof(Mount), "Required");
+        else if (!Directory.Exists(Mount))
+            errors.Add(nameof(Mount), "Does not exist");
 
         if (string.IsNullOrWhiteSpace(Name))
             errors.Add(nameof(Name), "Required");

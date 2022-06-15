@@ -7,7 +7,7 @@ public class MyDirectoryModel
 {
     public MyDirectoryModel(DirectoryInfo dir, string prevPath)
     {
-        Name = HttpUtility.HtmlEncode(dir.Name);
+        Name = dir.Name;
         Modified = dir.LastWriteTimeUtc;
         Path = dir.FullName;
         Url = $"{prevPath}/{HttpUtility.UrlPathEncode(dir.Name)}";

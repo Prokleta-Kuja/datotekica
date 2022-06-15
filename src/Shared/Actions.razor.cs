@@ -1,18 +1,23 @@
 using System.Buffers;
+using System.Text;
+using System.Web;
 using datotekica.Extensions;
 using datotekica.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.JSInterop;
 
 namespace datotekica.Shared;
 
-public partial class Actions
+public partial class Actions : IDisposable
 {
+    [Inject] NavigationManager _nav { get; set; } = null!;
     [Inject] ToastService _toast { get; set; } = null!;
     [Inject] CacheService _cache { get; set; } = null!;
     [Inject] IJSRuntime _js { get; set; } = null!;
     [Parameter] public string BasePath { get; set; } = null!;
+    [Parameter] public bool CanWrite { get; set; }
     [Parameter] public int MaxFiles { get; set; } = 128;
     [Parameter] public long MaxFileSize { get; set; } = 1024 * 1024 * 250; // MB
     [Parameter] public Dictionary<string, bool>? Selected { get; set; }
@@ -26,9 +31,18 @@ public partial class Actions
     bool _creatingDir;
     string? _newDirName;
     ElementReference _newDirRef;
+    string _breadcrumbsHtml = string.Empty;
     static char[] s_invalids = Path.GetInvalidFileNameChars();
+    protected override void OnInitialized()
+    {
+        _nav.LocationChanged += UpdateBreadcrumbs;
+        UpdateBreadcrumbs(this, new(_nav.Uri, false));
+    }
     async Task UploadFiles(InputFileChangeEventArgs e)
     {
+        if (!CanWrite)
+            return;
+
         _cts = new();
         var files = e.GetMultipleFiles(MaxFiles);
         if (!files.Any())
@@ -74,6 +88,7 @@ public partial class Actions
                 }
             }
 
+            _toast.ShowSuccess("File(s) uploaded.");
             if (OnSuccessFiles.HasDelegate)
                 await OnSuccessFiles.InvokeAsync(uploaded);
         }
@@ -89,6 +104,9 @@ public partial class Actions
     }
     async void OpenCreateDirectory()
     {
+        if (!CanWrite)
+            return;
+
         _creatingDir = true;
         await Task.Delay(1);
         await _newDirRef.FocusAsync();
@@ -171,5 +189,43 @@ public partial class Actions
         }
 
         return file;
+    }
+    void UpdateBreadcrumbs(object? sender, LocationChangedEventArgs e)
+    {
+        _breadcrumbsHtml = string.Empty;
+        var relative = _nav.ToBaseRelativePath(e.Location);
+        var parts = relative.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        var crumbs = new List<(string Uri, string Name)>();
+        var last = string.Empty;
+        for (int i = 0; i < parts.Length; i++)
+        {
+            var part = parts[i];
+            var uri = last = string.IsNullOrWhiteSpace(last) ? $"/{part}" : $"{last}/{part}";
+            var name = HttpUtility.UrlDecode(part);
+            crumbs.Add((uri, name));
+        }
+
+        if (!crumbs.Any())
+            return;
+        else
+        {
+            var sb = new StringBuilder(@"<nav><ol class=""breadcrumb mb-0"">");
+            for (int i = 0; i < crumbs.Count; i++)
+            {
+                var crumb = crumbs[i];
+                if (i == crumbs.Count - 1)
+                    sb.Append($@"<li class=""breadcrumb-item active"">{crumb.Name}</li>");
+                else
+                    sb.Append($@"<li class=""breadcrumb-item""><a href=""{crumb.Uri}"">{crumb.Name}</a></li>");
+            }
+            sb.Append("</ol></nav>");
+            _breadcrumbsHtml = sb.ToString();
+        }
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        _nav.LocationChanged -= UpdateBreadcrumbs;
     }
 }

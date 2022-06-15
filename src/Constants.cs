@@ -26,7 +26,7 @@ public static class C
         public const string MyFiles = "/📁";
         public const string MyFilesPattern = "/📁/{*pageRoute}";
         public const string InternalShare = "/📰";
-        public const string InternalSharePattern = "/📰/{*pageRoute}";
+        public const string InternalSharePattern = "/📰/{shareName?}/{*pageRoute}";
         public const string InternalShareConfiguration = "/internal-share-configuration";
         public const string UsersConfiguration = "/user-configuration";
     }
