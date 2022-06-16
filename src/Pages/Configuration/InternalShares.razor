@@ -1,104 +1,111 @@
 @attribute [Microsoft.AspNetCore.Components.RouteAttribute(C.Routes.InternalShareConfiguration)]
 
-<PageTitle>Internal share configuration</PageTitle>
+@if (_unauthorized)
+{
+    <RedirectTo Url=@C.Routes.Forbidden Force />
+}
+else
+{
+    <PageTitle>Internal share configuration</PageTitle>
 
-<h1>Internal share</h1>
+    <h1>Internal share</h1>
 
-<div class="row">
+    <div class="row">
     <div class="col-lg-6 order-lg-2">
         @if (_create != null)
-        {
-            <legend>Add internal share</legend>
-            <form @onsubmit=SaveCreateClicked>
-                <TextBox For=@nameof(InternalShareCreateModel.Name) Label=Name @bind-Value=_create.Name Errors=_errors
+            {
+                <legend>Add internal share</legend>
+                <form @onsubmit=SaveCreateClicked>
+                    <TextBox For=@nameof(InternalShareCreateModel.Name) Label=Name @bind-Value=_create.Name Errors=_errors
                 Required AutoFocus />
-                <TextBox For=@nameof(InternalShareCreateModel.Mount) Label=Mount @bind-Value=_create.Mount Errors=_errors
+                    <TextBox For=@nameof(InternalShareCreateModel.Mount) Label=Mount @bind-Value=_create.Mount Errors=_errors
                 Required />
 
-                <button type="submit" class="btn btn-primary">Add</button>
-                <button type="reset" class="btn btn-outline-danger" @onclick=Clear>Cancel</button>
-            </form>
-        }
-        else if (_edit != null)
-        {
-            <legend>Edit @_edit.Name</legend>
-            <form @onsubmit=SaveEditClicked>
-                <TextBox For=@nameof(InternalShareEditModel.Name) Label=Name @bind-Value=_edit.Name Errors=_errors Required
+                    <button type="submit" class="btn btn-primary">Add</button>
+                    <button type="reset" class="btn btn-outline-danger" @onclick=Clear>Cancel</button>
+                </form>
+            }
+            else if (_edit != null)
+            {
+                <legend>Edit @_edit.Name</legend>
+                <form @onsubmit=SaveEditClicked>
+                    <TextBox For=@nameof(InternalShareEditModel.Name) Label=Name @bind-Value=_edit.Name Errors=_errors Required
                 AutoFocus />
-                <TextBox For=@nameof(InternalShareEditModel.Mount) Label=Mount @bind-Value=_edit.Mount Errors=_errors
+                    <TextBox For=@nameof(InternalShareEditModel.Mount) Label=Mount @bind-Value=_edit.Mount Errors=_errors
                 Required />
-                <div class="card mb-3">
-                    <div class="card-header">Users</div>
-                    <ul class="list-group list-group-flush">
-                        @foreach (var user in _selectedUsers)
-                        {
-                            <li @key=user.Key class="list-group-item">
-                                <div class="d-flex gap-2 w-100 justify-content-between align-items-center">
-                                    <div>
-                                        <h6 class="mb-0">
-                                            <i class="pe-2 pointer bi bi-@(user.Value.canWrite ? "pencil" : "book")"
+                    <div class="card mb-3">
+                        <div class="card-header">Users</div>
+                        <ul class="list-group list-group-flush">
+                            @foreach (var user in _selectedUsers)
+                            {
+                                <li @key=user.Key class="list-group-item">
+                                    <div class="d-flex gap-2 w-100 justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-0">
+                                                <i class="pe-2 pointer bi bi-@(user.Value.canWrite ? "pencil" : "book")"
                                         @onclick=@(()=>ToggleWritable(user.Key))></i>
-                                            @user.Value.username
-                                        </h6>
-                                    </div>
-                                    <button type="button" class="btn btn-outline-danger"
+                                                @user.Value.username
+                                            </h6>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-danger"
                                 @onclick="( () => RemoveUser(user.Key))">Remove</button>
+                                    </div>
+                                </li>
+                            }
+                            @if (_availableUsers.Any())
+                            {
+                                <div class="card-footer">
+                                    <div class="input-group">
+                                        <select class="form-select" @bind=_selectedUserId>
+                                            <option value="0" selected disabled>Select user</option>
+                                            @foreach (var role in _availableUsers)
+                                            {
+                                                <option value=@role.Key>@role.Value</option>
+                                            }
+                                        </select>
+                                        <button type="button" class="btn btn-success" @onclick=AddUser>Add</button>
+                                    </div>
                                 </div>
-                            </li>
-                        }
-                        @if (_availableUsers.Any())
-                        {
-                            <div class="card-footer">
-                                <div class="input-group">
-                                    <select class="form-select" @bind=_selectedUserId>
-                                        <option value="0" selected disabled>Select user</option>
-                                        @foreach (var role in _availableUsers)
-                                        {
-                                            <option value=@role.Key>@role.Value</option>
-                                        }
-                                    </select>
-                                    <button type="button" class="btn btn-success" @onclick=AddUser>Add</button>
-                                </div>
-                            </div>
-                        }
-                    </ul>
-                </div>
-                <button type="submit" class="btn btn-primary">Save</button>
-                <button type="reset" class="btn btn-outline-danger" @onclick=Clear>Cancel</button>
-            </form>
-        }
-        else
-        {
-            <div class="alert alert-info">Add or create</div>
-        }
-    </div>
-    <div class="col-lg-6 order-lg-1">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead>
-                    <tr>
-                        <th>Share name</th>
-                        <th>Mount point</th>
-                        <th>Users</th>
-                        <th class="text-end">
-                            <button class="btn btn-primary" @onclick=AddClicked>Add</button>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in _list)
-                    {
-                        <tr @key=item.InternalShareId>
-                            <td class="user-select-all">@item.Name</td>
-                            <td class="user-select-all">@item.Mount</td>
-                            <td class="user-select-all">@item.InternalShareUsers.Count</td>
-                            <td class="text-end">
-                                <button class="btn btn-secondary" @onclick=@(()=>EditClicked(item))>Edit</button>
-                            </td>
+                            }
+                        </ul>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="reset" class="btn btn-outline-danger" @onclick=Clear>Cancel</button>
+                </form>
+            }
+            else
+            {
+                <div class="alert alert-info">Add or create</div>
+            }
+        </div>
+        <div class="col-lg-6 order-lg-1">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Share name</th>
+                            <th>Mount point</th>
+                            <th>Users</th>
+                            <th class="text-end">
+                                <button class="btn btn-primary" @onclick=AddClicked>Add</button>
+                            </th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in _list)
+                        {
+                            <tr @key=item.InternalShareId>
+                                <td class="user-select-all">@item.Name</td>
+                                <td class="user-select-all">@item.Mount</td>
+                                <td class="user-select-all">@item.InternalShareUsers.Count</td>
+                                <td class="text-end">
+                                    <button class="btn btn-secondary" @onclick=@(()=>EditClicked(item))>Edit</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-</div>
+}

@@ -21,7 +21,8 @@
                 "uriFormat": "%s/📰"
             },
             "env": {
-                "ASPNETCORE_ENVIRONMENT": "Development"
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "AdminUsers": "developer"
             },
             "sourceFileMap": {
                 "/Views": "${workspaceFolder}/Views"

@@ -16,7 +16,12 @@ COPY --from=build /app/out ./
 
 ENV ASPNETCORE_URLS=http://*:50505 \
     LOCALE=en-US \
-    TZ=America/Chicago
+    TZ=America/Chicago \
+    HeaderUser=Remote-User \
+    HeaderGroups=Remote-Groups \
+    HeaderName=Remote-Name \
+    HeaderEmail=Remote-Email \
+    AdminUsers="admin,developer"
 
 EXPOSE 50505
 

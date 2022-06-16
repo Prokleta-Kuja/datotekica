@@ -1,13 +1,16 @@
 using datotekica.Entities;
 using datotekica.Models;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 
 namespace datotekica.Pages.Configuration;
 
 public partial class InternalShares
 {
+    [Inject] AuthenticationStateProvider _auth { get; set; } = null!;
     [Inject] IDbContextFactory<AppDbContext> _factory { get; set; } = null!;
+    bool _unauthorized;
     List<InternalShare> _list = new();
     Dictionary<int, string> _allUsers = new();
     Dictionary<int, (string username, bool canWrite)> _selectedUsers = new();
@@ -18,6 +21,13 @@ public partial class InternalShares
     Dictionary<string, string>? _errors;
     protected override async Task OnInitializedAsync()
     {
+        var authState = await _auth.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity == null || !user.Identity.IsAuthenticated || !C.IsAdmin(user.Identity.Name!))
+        {
+            _unauthorized = true;
+            return;
+        }
         await LoadInternalSharesAsync();
     }
     async Task LoadInternalSharesAsync()

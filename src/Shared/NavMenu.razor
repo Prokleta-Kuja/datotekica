@@ -1,7 +1,15 @@
 ﻿@using System.Reflection
-<nav class="navbar navbar-expand-md navbar-dark bg-secondary">
+@inject AuthenticationStateProvider _auth;
+
+@if (_unauthorized)
+{
+    <RedirectTo Url=@C.Routes.Forbidden Force />
+}
+else
+{
+    <nav class="navbar navbar-expand-md navbar-dark bg-secondary">
     <div class="container-xxl">
-        <a class="navbar-brand me-0" href=@C.Routes.Root>datotekica <sup class="text-muted">@Version</sup></a>
+        <a class="navbar-brand me-0" href=@C.Routes.Root>datotekica <sup class="text-muted">@_version</sup></a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -12,29 +20,64 @@
                         My files
                     </NavLink>
                 </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href=@C.Routes.InternalShare>
+                        Shares
+                    </NavLink>
+                </li>
             </ul>
             <div class="dropdown text-end navbar-nav">
                 <a href="#" class="nav-link d-block text-decoration-none dropdown-toggle" id="user-dropdown"
                     data-bs-toggle="dropdown">
-                    <i class="me-2 bi bi-person-circle"></i> User display name
+                    <i class="me-2 bi bi-person-circle"></i> @_displayName
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="user-dropdown">
-                    <li>
-                        <a class="dropdown-item" href="/sign-ooout">
-                            <i class="me-2 bi bi-box-arrow-right"></i> Sign out
-                        </a>
+                    @if (_isAdmin)
+                        {
+                            <li>
+                                <a class="dropdown-item" href=@C.Routes.UsersConfiguration>
+                                    <i class="bi bi-people-fill"></i> Configure users
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href=@C.Routes.InternalShareConfiguration>
+                                    <i class="bi bi-folder-symlink-fill"></i> Configure shares
+                                </a>
+                            </li>
+                            <li>
+                        <hr class="dropdown-divider">
                     </li>
-                </ul>
+                        }
+                        <li>
+                            <a class="dropdown-item" href="/sign-ooout">
+                                <i class="me-2 bi bi-box-arrow-right"></i> Sign out
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
-    </div>
-</nav>
+    </nav>
+}
 
 @code {
-    private string? Version;
-    protected override void OnInitialized()
+    bool _unauthorized;
+    string? _displayName;
+    bool _isAdmin;
+    string? _version;
+    protected override async Task OnInitializedAsync()
     {
-        Version =
+        var authState = await _auth.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity == null || !user.Identity.IsAuthenticated)
+        {
+            _unauthorized = true;
+            return;
+        }
+
+        _displayName = user.Identity.Name!;
+        _isAdmin = C.IsAdmin(_displayName);
+        _version =
         Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
     }
 }

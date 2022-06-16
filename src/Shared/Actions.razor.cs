@@ -172,7 +172,7 @@ public partial class Actions : IDisposable
             return;
 
         var id = _cache.RegisterDownload(Selected);
-        var url = C.Routes.DownloadFor(id);
+        var url = C.Routes.AttachmentFor(id);
         await _js.OpenNewTab(url);
     }
     FileInfo GetLocalFile(string uploadName)

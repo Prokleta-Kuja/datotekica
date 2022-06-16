@@ -7,6 +7,19 @@ public static class C
 {
     public static readonly TimeZoneInfo DefaultTZ = TimeZoneInfo.FindSystemTimeZoneById("Europe/Zagreb");
     public static readonly CultureInfo DefaultLocale = CultureInfo.GetCultureInfo("en-US");
+    static HashSet<string>? _adminUsers;
+    public static bool IsAdmin(string username)
+    {
+        if (_adminUsers == null)
+        {
+            _adminUsers = new(StringComparer.InvariantCultureIgnoreCase);
+            var users = C.Env.AdminUsers.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            foreach (var user in users)
+                _adminUsers.Add(user);
+        }
+
+        return _adminUsers.Contains(username);
+    }
     public static class Env
     {
         public static string Locale => Environment.GetEnvironmentVariable("LOCALE") ?? "en-US";
@@ -15,6 +28,7 @@ public static class C
         public static string HeaderGroups => Environment.GetEnvironmentVariable(nameof(HeaderGroups)) ?? "Remote-Groups";
         public static string HeaderName => Environment.GetEnvironmentVariable(nameof(HeaderName)) ?? "Remote-Name";
         public static string HeaderEmail => Environment.GetEnvironmentVariable(nameof(HeaderEmail)) ?? "Remote-Email";
+        public static string AdminUsers => Environment.GetEnvironmentVariable(nameof(AdminUsers)) ?? string.Empty;
     }
     public static class Routes
     {
@@ -23,6 +37,9 @@ public static class C
         public const string Download = "/📦";
         public const string DownloadPattern = "/📦/{id:guid}";
         public static string DownloadFor(Guid id) => $"{Download}/{id}";
+        public const string Attachment = "/📎";
+        public const string AttachmentPattern = "/📎/{id:guid}";
+        public static string AttachmentFor(Guid id) => $"{Attachment}/{id}";
         public const string MyFiles = "/📁";
         public const string MyFilesPattern = "/📁/{*pageRoute}";
         public const string InternalShare = "/📰";

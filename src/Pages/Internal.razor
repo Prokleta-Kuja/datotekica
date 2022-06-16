@@ -4,7 +4,7 @@
 
 @if (_unauthorized)
 {
-    <RedirectTo Url=@C.Routes.Forbidden />
+    <RedirectTo Url=@C.Routes.Forbidden Force />
 }
 else if (_notFound)
 {
