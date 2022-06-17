@@ -17,6 +17,7 @@ else if (!_shares.Any())
 else if (_root == null)
 {
     <div class="row my-4">
+        <div class="col-md-3"></div>
         <div class="col-md-9">
             <div class="list-group">
                 @foreach (var share in _shares)
@@ -25,7 +26,7 @@ else if (_root == null)
                         <div class="flex-shrink-0 p-2"><i class="bi bi-folder-symlink-fill"></i></div>
                         <a class="flex-grow-1 py-2 text-truncate text-decoration-none text-white" title=@share.Value.Name
                     href=@share.Value.Url>@share.Value.Name</a>
-                        <div class="text-right d-none d-sm-block" title=@share.Value.Modified>@share.Value.ModifiedAgo</div>
+                        <div class="text-right d-none d-sm-block p-2" title=@share.Value.Modified>@share.Value.ModifiedAgo</div>
                     </div>
                 }
             </div>
@@ -35,16 +36,17 @@ else if (_root == null)
 else if (_current != null && _current.Exists)
 {
     <div class="row my-4">
-    <div class="col-md-9">
-        <div class="list-group">
-            <div class="list-group-item sticky-top">
+    <div class="col-md-3 mb-3">
                 <Actions BasePath=@_current.FullName Selected=_selected OnSuccessFiles=AddUploadedFiles CanWrite=HasWrite()
                     OnSuccessDirectory=AddDirectory OnDeleted=EnumerateCurrentDirectory OnDeselect=StateHasChanged />
-            </div>
+        </div>
+    <div class="col-md-9">
+        <Breadcrumbs />
+        <div class="list-group">
                 <div class="list-group-item list-group-item-secondary d-flex align-items-center p-0">
                     <div class="flex-shrink-0 p-2"><i class="bi bi-arrow-left-circle-fill"></i></div>
                     <a class="flex-grow-1 py-2 text-decoration-none text-white" href=@_parentPath> .. </a>
-                    <div class="text-right d-none d-sm-block"></div>
+                    <div class="text-right d-none d-sm-block p-2"></div>
                 </div>
                 @foreach (var dir in _dirs)
                 {
@@ -53,7 +55,7 @@ else if (_current != null && _current.Exists)
                         class=@IsSelected(dir.Path, true)></i></div>
                         <a class="flex-grow-1 py-2 text-truncate text-decoration-none text-white" title=@dir.Name
                     href=@dir.Url>@dir.Name</a>
-                        <div class="text-right d-none d-sm-block" title=@dir.Modified>@dir.ModifiedAgo</div>
+                        <div class="text-right d-none d-sm-block p-2" title=@dir.Modified>@dir.ModifiedAgo</div>
                     </div>
                 }
                 @foreach (var file in _files)
@@ -63,12 +65,10 @@ else if (_current != null && _current.Exists)
                         class=@IsSelected(file.Path, false)></i></div>
                         <div class="flex-grow-1 py-2 text-truncate text-decoration-none text-white pointer" title=@file.Name
                     @onclick=@(()=>DownloadFile(file.Path))>@file.Name</div>
-                        <div class="text-right d-none d-sm-block" title=@file.Modified>@file.ModifiedAgo</div>
+                        <div class="text-right d-none d-sm-block p-2" title=@file.Modified>@file.ModifiedAgo</div>
                     </div>
                 }
             </div>
-        </div>
-        <div class="col-md-3 d-none d-md-block">
         </div>
     </div>
 }

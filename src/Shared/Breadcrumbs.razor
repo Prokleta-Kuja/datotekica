@@ -1,0 +1,54 @@
+@using System.Web
+@using System.Text
+@implements IDisposable
+
+@((MarkupString)_breadcrumbsHtml)
+
+@code {
+    [Inject] NavigationManager _nav { get; set; } = null!;
+    string _breadcrumbsHtml = string.Empty;
+    protected override void OnInitialized()
+    {
+        _nav.LocationChanged += UpdateBreadcrumbs;
+        UpdateBreadcrumbs(this, new(_nav.Uri, false));
+    }
+    void UpdateBreadcrumbs(object? sender, LocationChangedEventArgs e)
+    {
+        _breadcrumbsHtml = string.Empty;
+        var relative = _nav.ToBaseRelativePath(e.Location);
+        var parts = relative.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        var crumbs = new List<(string Uri, string Name)>();
+        var last = string.Empty;
+        for (int i = 0; i < parts.Length; i++)
+        {
+            var part = parts[i];
+            var uri = last = string.IsNullOrWhiteSpace(last) ? $"/{part}" : $"{last}/{part}";
+            var name = HttpUtility.UrlDecode(part);
+            crumbs.Add((uri, name));
+        }
+
+        if (!crumbs.Any())
+            return;
+        else
+        {
+            var sb = new StringBuilder(@"<nav><ol class=""breadcrumb"">");
+            for (int i = 0; i < crumbs.Count; i++)
+            {
+                var crumb = crumbs[i];
+                if (i == crumbs.Count - 1)
+                    sb.Append($@"<li class=""breadcrumb-item active"">{crumb.Name}</li>");
+                else
+                    sb.Append($@"<li class=""breadcrumb-item""><a class=""text-decoration-none""
+href=""{crumb.Uri}"">{crumb.Name}</a></li>");
+            }
+            sb.Append("</ol></nav>");
+            _breadcrumbsHtml = sb.ToString();
+        }
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        _nav.LocationChanged -= UpdateBreadcrumbs;
+    }
+}

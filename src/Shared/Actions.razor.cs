@@ -10,9 +10,8 @@ using Microsoft.JSInterop;
 
 namespace datotekica.Shared;
 
-public partial class Actions : IDisposable
+public partial class Actions
 {
-    [Inject] NavigationManager _nav { get; set; } = null!;
     [Inject] ToastService _toast { get; set; } = null!;
     [Inject] CacheService _cache { get; set; } = null!;
     [Inject] IJSRuntime _js { get; set; } = null!;
@@ -31,13 +30,7 @@ public partial class Actions : IDisposable
     bool _creatingDir;
     string? _newDirName;
     ElementReference _newDirRef;
-    string _breadcrumbsHtml = string.Empty;
     static char[] s_invalids = Path.GetInvalidFileNameChars();
-    protected override void OnInitialized()
-    {
-        _nav.LocationChanged += UpdateBreadcrumbs;
-        UpdateBreadcrumbs(this, new(_nav.Uri, false));
-    }
     async Task UploadFiles(InputFileChangeEventArgs e)
     {
         if (!CanWrite)
@@ -111,7 +104,7 @@ public partial class Actions : IDisposable
         await Task.Delay(1);
         await _newDirRef.FocusAsync();
     }
-    async void CloseCreateDirectory() { await Task.Delay(50); _creatingDir = false; }
+    async void CloseCreateDirectory() { await Task.Delay(50); _creatingDir = false; StateHasChanged(); }
     async Task CreateDirectory()
     {
         if (string.IsNullOrWhiteSpace(_newDirName))
@@ -189,43 +182,5 @@ public partial class Actions : IDisposable
         }
 
         return file;
-    }
-    void UpdateBreadcrumbs(object? sender, LocationChangedEventArgs e)
-    {
-        _breadcrumbsHtml = string.Empty;
-        var relative = _nav.ToBaseRelativePath(e.Location);
-        var parts = relative.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        var crumbs = new List<(string Uri, string Name)>();
-        var last = string.Empty;
-        for (int i = 0; i < parts.Length; i++)
-        {
-            var part = parts[i];
-            var uri = last = string.IsNullOrWhiteSpace(last) ? $"/{part}" : $"{last}/{part}";
-            var name = HttpUtility.UrlDecode(part);
-            crumbs.Add((uri, name));
-        }
-
-        if (!crumbs.Any())
-            return;
-        else
-        {
-            var sb = new StringBuilder(@"<nav><ol class=""breadcrumb mb-0"">");
-            for (int i = 0; i < crumbs.Count; i++)
-            {
-                var crumb = crumbs[i];
-                if (i == crumbs.Count - 1)
-                    sb.Append($@"<li class=""breadcrumb-item active"">{crumb.Name}</li>");
-                else
-                    sb.Append($@"<li class=""breadcrumb-item""><a href=""{crumb.Uri}"">{crumb.Name}</a></li>");
-            }
-            sb.Append("</ol></nav>");
-            _breadcrumbsHtml = sb.ToString();
-        }
-        StateHasChanged();
-    }
-
-    public void Dispose()
-    {
-        _nav.LocationChanged -= UpdateBreadcrumbs;
     }
 }
