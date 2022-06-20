@@ -32,8 +32,33 @@ else if (Selected?.Any() ?? false)
 else
 {
     <div class="list-group sticky-top">
-    <button type="button" class="list-group-item list-group-item-action" disabled>Click item icon to select</button>
-    @if (CanWrite)
+    <form class="list-group-item p-2" @onsubmit=UpdateQueryString>
+        <div class="input-group mb-2">
+            <input type="text" class="form-control" placeholder="Search" @bind=_search>
+            <button class="btn btn-outline-secondary" type="submit">
+                <i class="bi bi-search"></i>
+            </button>
+        </div>
+        <div class="input-group">
+            <select class="form-select" title="Sort by" @bind=SortBy>
+                <option selected>Sort by</option>
+                <option value="Name">Name</option>
+                <option value="Modified">Modified</option>
+                <option value="Size">Size</option>
+            </select>
+            <div title="Direction" class="input-group-text pointer" @onclick=ToggleDirection>
+                @if (_sortDesc)
+                    {
+                        <i class="bi bi-sort-up"></i>
+                    }
+                    else
+                    {
+                        <i class="bi bi-sort-down"></i>
+                    }
+                </div>
+            </div>
+        </form>
+        @if (CanWrite)
         {
             <label for=upload hidden=@(_creatingDir) class="list-group-item list-group-item-action p-0">
                 <div class="pointer d-flex">
@@ -42,8 +67,7 @@ else
                 </div>
             </label>
 
-            <button hidden=@(_creatingDir) class="list-group-item list-group-item-action pointer p-0 rounded-bottom"
-        @onclick=OpenCreateDirectory>
+            <button hidden=@(_creatingDir) class="list-group-item list-group-item-action p-0" @onclick=OpenCreateDirectory>
                 <div class="d-flex">
                     <i class="bi bi-folder-plus text-success p-2"></i>
                     <div class="py-2">Create directory</div>
@@ -54,11 +78,13 @@ else
         <div class="input-group">
             <input @ref=_newDirRef type="text" class="form-control list-group-item" placeholder="New directory name"
                 @bind=_newDirName @onblur=CloseCreateDirectory>
-            <button class="btn btn-outline-success" type="submit" style="border-top-right-radius: 0;">
+            <button class="btn btn-outline-success" type="submit">
                 <i class="bi bi-folder-plus"></i>
             </button>
         </div>
     </form>
         }
+        <button type="button" class="list-group-item list-group-item-action border-top-0 p-2" disabled>Click item icon to
+            select</button>
     </div>
 }

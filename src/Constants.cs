@@ -47,6 +47,12 @@ public static class C
         public const string InternalShareConfiguration = "/internal-share-configuration";
         public const string UsersConfiguration = "/user-configuration";
     }
+    public static class Query
+    {
+        public const string Search = "search";
+        public const string Sort = "sort";
+        public const string Direction = "dir";
+    }
     public static class Paths
     {
         public static string Config => Path.Combine(Environment.CurrentDirectory, "config");
