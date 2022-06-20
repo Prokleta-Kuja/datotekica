@@ -13,6 +13,7 @@ public class MyFileModel
         Path = file.FullName;
         Url = $"{prevPath}/{HttpUtility.UrlPathEncode(file.Name)}";
         ModifiedAgo = Modified.ToTimeAgo();
+        HumanSize = C.GetHumanFileSize(file);
     }
 
     public string Url { get; set; }
@@ -21,4 +22,5 @@ public class MyFileModel
     public DateTime Modified { get; set; }
     public string ModifiedAgo { get; set; }
     public long Size { get; set; }
+    public string HumanSize { get; set; }
 }
