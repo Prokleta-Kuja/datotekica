@@ -4,6 +4,7 @@ using datotekica.Models;
 using datotekica.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop;
 
@@ -22,6 +23,10 @@ public partial class Internal
     bool _notFound;
     string? _prevShareName;
     string? _prevPageRoute;
+    string? _prevQuery;
+    string? _search;
+    string? _sortBy;
+    bool _sortDesc;
     Dictionary<string, InternalShareViewModel> _shares = new();
     DirectoryInfo? _root;
     DirectoryInfo? _current;
@@ -55,18 +60,47 @@ public partial class Internal
     }
     protected override void OnParametersSet()
     {
-        if (_prevShareName != ShareName)
+        var query = new Uri(_nav.Uri).Query;
+        var queryChanged = _prevQuery != query;
+        var shareChanged = _prevShareName != ShareName;
+        var routeChanged = _prevPageRoute != PageRoute;
+
+        if (queryChanged)
+        {
+            _prevQuery = query;
+            var parsed = QueryHelpers.ParseQuery(query);
+
+            if (parsed.TryGetValue(C.Query.Search, out var search) && _search != search)
+                _search = search;
+            else
+                _search = null;
+
+            if (parsed.TryGetValue(C.Query.Sort, out var sort) && _sortBy != sort)
+                _sortBy = sort;
+            else
+                _sortBy = null;
+
+            if (parsed.TryGetValue(C.Query.Direction, out _) && !_sortDesc)
+                _sortDesc = true;
+            else
+                _sortDesc = false;
+        }
+
+        if (shareChanged)
         {
             _notFound = false;
             _prevShareName = ShareName;
             SetRoot();
         }
-        if (_prevPageRoute != PageRoute)
+
+        if (routeChanged)
         {
             _notFound = false;
             _prevPageRoute = PageRoute;
-            EnumerateCurrentDirectory();
         }
+
+        if (queryChanged || shareChanged || routeChanged)
+            EnumerateCurrentDirectory();
     }
     void SetRoot()
     {
@@ -105,11 +139,12 @@ public partial class Internal
             }
         }
 
-        _currentPath = _nav.Uri.TrimEnd('/');
-        _parentPath = _currentPath[.._currentPath.LastIndexOf('/')];
+        var uri = new Uri(_nav.Uri);
+        _currentPath = uri.LocalPath.TrimEnd('/');
+        _parentPath = $"{_currentPath[.._currentPath.LastIndexOf('/')]}{_prevQuery}";
 
-        _dirs = _current.EnumerateDirectories().Select(d => new MyDirectoryModel(d, _currentPath)).ToList();
-        _files = _current.EnumerateFiles().Select(f => new MyFileModel(f, _currentPath)).ToList();
+        _dirs = _current.EnumerateDirectories().Select(d => new MyDirectoryModel(d, _currentPath, _prevQuery)).ToList();
+        _files = _current.EnumerateFiles().Select(f => new MyFileModel(f, _currentPath, _prevQuery)).ToList();
         StateHasChanged();
     }
     void AddUploadedFiles(List<FileInfo> uploaded)
@@ -117,13 +152,13 @@ public partial class Internal
         if (string.IsNullOrWhiteSpace(_currentPath))
             return;
 
-        _files.AddRange(uploaded.Select(uf => new MyFileModel(uf, _currentPath)));
+        _files.AddRange(uploaded.Select(uf => new MyFileModel(uf, _currentPath, _prevQuery)));
         StateHasChanged();
     }
     void AddDirectory(DirectoryInfo dir)
     {
         if (!string.IsNullOrWhiteSpace(_currentPath))
-            _dirs.Add(new MyDirectoryModel(dir, _currentPath));
+            _dirs.Add(new MyDirectoryModel(dir, _currentPath, _prevQuery));
     }
     async Task DownloadFile(string path)
     {

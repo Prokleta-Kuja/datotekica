@@ -1,17 +1,16 @@
 using System.Buffers;
-using System.Text;
-using System.Web;
 using datotekica.Extensions;
 using datotekica.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Components.Routing;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.JSInterop;
 
 namespace datotekica.Shared;
 
 public partial class Actions
 {
+    [Inject] NavigationManager _nav { get; set; } = null!;
     [Inject] ToastService _toast { get; set; } = null!;
     [Inject] CacheService _cache { get; set; } = null!;
     [Inject] IJSRuntime _js { get; set; } = null!;
@@ -29,8 +28,55 @@ public partial class Actions
     double _transferedBytes;
     bool _creatingDir;
     string? _newDirName;
+    string? _prevQuery;
+    string? _search;
+    string? _sortBy;
+    public string? SortBy { get => _sortBy; set { _sortBy = value; UpdateQueryString(); } }
+    bool _sortDesc;
     ElementReference _newDirRef;
-    static char[] s_invalids = Path.GetInvalidFileNameChars();
+    static readonly char[] s_invalids = Path.GetInvalidFileNameChars();
+    protected override void OnParametersSet()
+    {
+        var query = new Uri(_nav.Uri).Query;
+        var queryChanged = _prevQuery != query;
+
+
+        if (queryChanged)
+        {
+            _prevQuery = query;
+            var parsed = QueryHelpers.ParseQuery(query);
+
+            if (parsed.TryGetValue(C.Query.Search, out var search) && _search != search)
+                _search = search;
+            else
+                _search = null;
+
+            if (parsed.TryGetValue(C.Query.Sort, out var sort) && _sortBy != sort)
+                _sortBy = sort;
+            else
+                _sortBy = null;
+
+            if (parsed.TryGetValue(C.Query.Direction, out _) && !_sortDesc)
+                _sortDesc = true;
+            else
+                _sortDesc = false;
+        }
+    }
+    void ToggleDirection()
+    {
+        _sortDesc = !_sortDesc;
+        UpdateQueryString();
+    }
+    void UpdateQueryString()
+    {
+        var query = new Dictionary<string, object?>(3);
+        query.Add(C.Query.Search, string.IsNullOrWhiteSpace(_search) ? null : _search);
+        query.Add(C.Query.Sort, string.IsNullOrWhiteSpace(_sortBy) ? null : _sortBy);
+        query.Add(C.Query.Direction, _sortDesc ? "↑" : null);
+
+        var uriWithQuery = _nav.GetUriWithQueryParameters(query);
+        _nav.NavigateTo(uriWithQuery);
+    }
     async Task UploadFiles(InputFileChangeEventArgs e)
     {
         if (!CanWrite)
