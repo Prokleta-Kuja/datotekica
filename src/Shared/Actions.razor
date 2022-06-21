@@ -35,19 +35,25 @@ else
     <form class="list-group-item p-2" @onsubmit=UpdateQueryString>
         <div class="input-group mb-2">
             <input type="text" class="form-control" placeholder="Search" @bind=_search>
-            <button class="btn btn-outline-secondary" type="submit">
+            <button class="btn btn-outline-primary" type="submit">
                 <i class="bi bi-search"></i>
             </button>
-        </div>
-        <div class="input-group">
-            <select class="form-select" title="Sort by" @bind=SortBy>
-                <option selected>Sort by</option>
-                <option value="Name">Name</option>
-                <option value="Modified">Modified</option>
-                <option value="Size">Size</option>
-            </select>
-            <div title="Direction" class="input-group-text pointer" @onclick=ToggleDirection>
-                @if (_sortDesc)
+            @if (!string.IsNullOrWhiteSpace(_search))
+                {
+                    <button class="btn btn-outline-danger" type="reset" @onclick=ClearSearch>
+                        <i class="bi bi-x"></i>
+                    </button>
+                }
+            </div>
+            <div class="input-group">
+                <select class="form-select" title="Sort by" @bind=SortBy>
+                    <option selected disabled>Sort by</option>
+                    <option value="Name">Name</option>
+                    <option value="Modified">Modified</option>
+                    <option value="Size">Size</option>
+                </select>
+                <div title="Direction" class="input-group-text pointer" @onclick=ToggleDirection>
+                    @if (_sortDesc)
                     {
                         <i class="bi bi-sort-up"></i>
                     }

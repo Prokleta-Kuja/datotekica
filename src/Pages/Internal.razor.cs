@@ -19,14 +19,14 @@ public partial class Internal
     [Inject] IJSRuntime _js { get; set; } = null!;
     [Parameter] public string? ShareName { get; set; }
     [Parameter] public string? PageRoute { get; set; }
+    [Parameter][SupplyParameterFromQuery(Name = C.Query.Search)] public string? Search { get; set; }
+    [Parameter][SupplyParameterFromQuery(Name = C.Query.Sort)] public string? SortBy { get; set; }
+    [Parameter][SupplyParameterFromQuery(Name = C.Query.Direction)] public bool SortDesc { get; set; }
     bool _unauthorized;
     bool _notFound;
     string? _prevShareName;
     string? _prevPageRoute;
     string? _prevQuery;
-    string? _search;
-    string? _sortBy;
-    bool _sortDesc;
     Dictionary<string, InternalShareViewModel> _shares = new();
     DirectoryInfo? _root;
     DirectoryInfo? _current;
@@ -66,25 +66,7 @@ public partial class Internal
         var routeChanged = _prevPageRoute != PageRoute;
 
         if (queryChanged)
-        {
             _prevQuery = query;
-            var parsed = QueryHelpers.ParseQuery(query);
-
-            if (parsed.TryGetValue(C.Query.Search, out var search) && _search != search)
-                _search = search;
-            else
-                _search = null;
-
-            if (parsed.TryGetValue(C.Query.Sort, out var sort) && _sortBy != sort)
-                _sortBy = sort;
-            else
-                _sortBy = null;
-
-            if (parsed.TryGetValue(C.Query.Direction, out _) && !_sortDesc)
-                _sortDesc = true;
-            else
-                _sortDesc = false;
-        }
 
         if (shareChanged)
         {
@@ -143,8 +125,19 @@ public partial class Internal
         _currentPath = uri.LocalPath.TrimEnd('/');
         _parentPath = $"{_currentPath[.._currentPath.LastIndexOf('/')]}{_prevQuery}";
 
-        _dirs = _current.EnumerateDirectories().Select(d => new MyDirectoryModel(d, _currentPath, _prevQuery)).ToList();
-        _files = _current.EnumerateFiles().Select(f => new MyFileModel(f, _currentPath, _prevQuery)).ToList();
+        _dirs = _current
+            .EnumerateDirectories()
+            .Select(d => new MyDirectoryModel(d, _currentPath, _prevQuery))
+            .Filter(Search)
+            .Sort(SortBy, SortDesc)
+            .ToList();
+
+        _files = _current
+            .EnumerateFiles()
+            .Select(f => new MyFileModel(f, _currentPath, _prevQuery))
+            .Filter(Search)
+            .Sort(SortBy, SortDesc)
+            .ToList();
         StateHasChanged();
     }
     void AddUploadedFiles(List<FileInfo> uploaded)

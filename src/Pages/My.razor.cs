@@ -15,13 +15,13 @@ public partial class My
     [Inject] CacheService _cache { get; set; } = null!;
     [Inject] IJSRuntime _js { get; set; } = null!;
     [Parameter] public string? PageRoute { get; set; }
+    [Parameter][SupplyParameterFromQuery(Name = C.Query.Search)] public string? Search { get; set; }
+    [Parameter][SupplyParameterFromQuery(Name = C.Query.Sort)] public string? SortBy { get; set; }
+    [Parameter][SupplyParameterFromQuery(Name = C.Query.Direction)] public bool SortDesc { get; set; }
     bool _unauthorized;
     bool _notFound;
     string? _prevPageRoute;
     string? _prevQuery;
-    string? _search;
-    string? _sortBy;
-    bool _sortDesc;
     DirectoryInfo? _root;
     DirectoryInfo? _current;
     string? _currentPath;
@@ -53,25 +53,7 @@ public partial class My
         var routeChanged = _prevPageRoute != PageRoute;
 
         if (queryChanged)
-        {
             _prevQuery = query;
-            var parsed = QueryHelpers.ParseQuery(query);
-
-            if (parsed.TryGetValue(C.Query.Search, out var search) && _search != search)
-                _search = search;
-            else
-                _search = null;
-
-            if (parsed.TryGetValue(C.Query.Sort, out var sort) && _sortBy != sort)
-                _sortBy = sort;
-            else
-                _sortBy = null;
-
-            if (parsed.TryGetValue(C.Query.Direction, out _) && !_sortDesc)
-                _sortDesc = true;
-            else
-                _sortDesc = false;
-        }
 
         if (routeChanged)
         {
@@ -107,15 +89,15 @@ public partial class My
         _dirs = _current
             .EnumerateDirectories()
             .Select(d => new MyDirectoryModel(d, _currentPath, _prevQuery))
-            .Filter(_search)
-            .Sort(_sortBy, _sortDesc)
+            .Filter(Search)
+            .Sort(SortBy, SortDesc)
             .ToList();
 
         _files = _current
             .EnumerateFiles()
             .Select(f => new MyFileModel(f, _currentPath, _prevQuery))
-            .Filter(_search)
-            .Sort(_sortBy, _sortDesc)
+            .Filter(Search)
+            .Sort(SortBy, SortDesc)
             .ToList();
 
         StateHasChanged();

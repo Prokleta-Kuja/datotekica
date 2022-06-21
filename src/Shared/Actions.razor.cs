@@ -35,24 +35,29 @@ public partial class Actions
     bool _sortDesc;
     ElementReference _newDirRef;
     static readonly char[] s_invalids = Path.GetInvalidFileNameChars();
-    protected override void OnParametersSet()
+    protected override void OnInitialized()
     {
         var query = new Uri(_nav.Uri).Query;
         var queryChanged = _prevQuery != query;
-
 
         if (queryChanged)
         {
             _prevQuery = query;
             var parsed = QueryHelpers.ParseQuery(query);
 
-            if (parsed.TryGetValue(C.Query.Search, out var search) && _search != search)
-                _search = search;
+            if (parsed.TryGetValue(C.Query.Search, out var search))
+            {
+                if (_search != search)
+                    _search = search;
+            }
             else
                 _search = null;
 
-            if (parsed.TryGetValue(C.Query.Sort, out var sort) && _sortBy != sort)
-                _sortBy = sort;
+            if (parsed.TryGetValue(C.Query.Sort, out var sort))
+            {
+                if (_sortBy != sort)
+                    _sortBy = sort;
+            }
             else
                 _sortBy = null;
 
@@ -61,6 +66,11 @@ public partial class Actions
             else
                 _sortDesc = false;
         }
+    }
+    void ClearSearch()
+    {
+        _search = null;
+        UpdateQueryString();
     }
     void ToggleDirection()
     {
@@ -72,7 +82,7 @@ public partial class Actions
         var query = new Dictionary<string, object?>(3);
         query.Add(C.Query.Search, string.IsNullOrWhiteSpace(_search) ? null : _search);
         query.Add(C.Query.Sort, string.IsNullOrWhiteSpace(_sortBy) ? null : _sortBy);
-        query.Add(C.Query.Direction, _sortDesc ? "↑" : null);
+        query.Add(C.Query.Direction, _sortDesc ? true : null);
 
         var uriWithQuery = _nav.GetUriWithQueryParameters(query);
         _nav.NavigateTo(uriWithQuery);
